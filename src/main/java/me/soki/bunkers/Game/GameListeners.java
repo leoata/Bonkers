@@ -2,7 +2,6 @@ package me.soki.bunkers.Game;
 
 import fr.mrmicky.fastboard.FastBoard;
 import me.soki.bunkers.Koth.KothMGR;
-import me.soki.bunkers.Main.Main;
 import me.soki.bunkers.Teams.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -166,8 +165,7 @@ public class GameListeners implements Listener {
                     }
                 }
             }
-        }
-        if (!isStarted) {
+        }else{
             e.getDrops().clear();
         }
 
@@ -206,35 +204,39 @@ public class GameListeners implements Listener {
         ItemStack sword = p.getKiller().getItemInHand();
         String swordNameNullCheck = sword.getItemMeta().getDisplayName() == null ? sword.getType().name().toLowerCase().replace("_", " ") : sword.getItemMeta().getDisplayName();
         e.setDeathMessage("");
-        if (dc.equals(EntityDamageEvent.DamageCause.FALL)) {
-            if (p.getKiller() == null) {
-                Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7] §efell from a high place");
-            } else {
-                Bukkit.broadcastMessage(killerColor + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e hit " + playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e off of a cliff.");
+
+        if (p.getKiller() == null){
+            switch (dc){
+                case FALL:
+                    Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7] §efell from a high place");
+                    return;
+                case FIRE:
+                    Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7] §eburned to death.");
+                    return;
+                default:
+                    Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e died.");
+                    return;
             }
-        } else if (dc.equals(EntityDamageEvent.DamageCause.ENTITY_ATTACK)) {
-            if (p.getKiller() != null) {
-                Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e was slain by " + killerColor
-                        + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e using §c" + swordNameNullCheck);
-            } else {
-                Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e died.");
+        }else{
+            switch (dc){
+                case FALL:
+                    Bukkit.broadcastMessage(killerColor + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e hit " + playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e off of a cliff.");
+                    return;
+                case ENTITY_ATTACK:
+                    Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e was slain by " + killerColor
+                            + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e using §c" + swordNameNullCheck);
+                    return;
+                case FIRE:
+                    Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e burned to death whilst fighting "
+                            + killerColor + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e.");
+                    return;
+                case PROJECTILE:
+                    Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e was shot by " + killerColor
+                            + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e using §c" + swordNameNullCheck);
+                default:
+                    Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e died.");
+                    return;
             }
-        } else if (dc.equals(EntityDamageEvent.DamageCause.FIRE)) {
-            if (p.getKiller() == null) {
-                Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7] §eburned to death.");
-            } else {
-                Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e burned to death whilst fighting "
-                        + killerColor + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e.");
-            }
-        } else if (dc.equals(EntityDamageEvent.DamageCause.PROJECTILE)) {
-            if (p.getKiller() != null) {
-                Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e was shot by " + killerColor
-                        + p.getKiller().getName() + "§7[§8" + currentKillsKiller + "§7]§e using §c" + swordNameNullCheck);
-            } else {
-                Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e died.");
-            }
-        } else {
-            Bukkit.broadcastMessage(playerColor + p.getName() + "§7[§8" + currentKillsVictim + "§7]§e died.");
         }
     }
 
@@ -303,28 +305,18 @@ public class GameListeners implements Listener {
                     e.setCancelled(true);
                 }
             }
-            if (e.getBlock().getType().equals(Material.COAL_ORE) || e.getBlock().getType().equals(Material.IRON_ORE) ||
-                    e.getBlock().getType().equals(Material.GOLD_ORE) || e.getBlock().getType().equals(Material.DIAMOND_ORE)) {
-                ItemStack coal = new ItemStack(Material.COAL);
-                ItemStack iron = new ItemStack(Material.IRON_INGOT);
-                ItemStack gold = new ItemStack(Material.GOLD_INGOT);
-                ItemStack diamond = new ItemStack(Material.DIAMOND);
-                if (e.getBlock().getType().equals(Material.COAL_ORE)) {
-                    p.getInventory().addItem(coal);
+            List<ItemStack> itemStacks = new ArrayList<>();
+            itemStacks.add(new ItemStack(Material.COAL));
+            itemStacks.add(new ItemStack(Material.IRON_INGOT));
+            itemStacks.add(new ItemStack(Material.GOLD_INGOT));
+            itemStacks.add(new ItemStack(Material.DIAMOND));
+            for (ItemStack is : itemStacks){
+                if (e.getBlock().getType().equals(is.getType())){
+                    p.getInventory().addItem(is);
+                    blockMined(e.getBlock());
+                    e.setCancelled(true);
                 }
-                if (e.getBlock().getType().equals(Material.IRON_ORE)) {
-                    p.getInventory().addItem(iron);
-                }
-                if (e.getBlock().getType().equals(Material.DIAMOND_ORE)) {
-                    p.getInventory().addItem(diamond);
-                }
-                if (e.getBlock().getType().equals(Material.GOLD_ORE)) {
-                    p.getInventory().addItem(gold);
-                }
-                blockMined(e.getBlock());
-                e.setCancelled(true);
             }
-
         }
 
     }
@@ -364,18 +356,24 @@ public class GameListeners implements Listener {
                     e.setCancelled(true);
                 }
             }
-            if (respawnTimer.containsKey(attacker.getName())) {
-                double secondsleft = ((respawnTimer.get(attacker.getName()) / 1000.0) + 30) - (System.currentTimeMillis() / 1000.0);
-                if (secondsleft > 0) {
-                    e.setCancelled(true);
+            Player[] victimAndAttacker = new Player[2];
+            victimAndAttacker[0] = victim;
+            victimAndAttacker[1] = attacker;
+            for (Player eitherPlayer : victimAndAttacker){
+                if (respawnTimer.containsKey(eitherPlayer.getName())) {
+                    double secondsleft = ((respawnTimer.get(eitherPlayer.getName()) / 1000.0) + 30) - (System.currentTimeMillis() / 1000.0);
+                    if (secondsleft > 0) {
+                        e.setCancelled(true);
+                    }
                 }
-            }
-            if (respawnTimer.containsKey(victim.getName())) {
-                double secondsleft = ((respawnTimer.get(victim.getName()) / 1000.0) + 30) - (System.currentTimeMillis() / 1000.0);
-                if (secondsleft > 0) {
-                    e.setCancelled(true);
+                
+                if (homeTimer.containsKey(eitherPlayer.getName())) {
+                    homeTimer.remove(eitherPlayer.getName());
+                    homeLocation.remove(eitherPlayer.getName());
                 }
+
             }
+
             if (!isStarted) {
                 e.setCancelled(true);
             }
@@ -384,15 +382,6 @@ public class GameListeners implements Listener {
                 if (effect.getType().equals(PotionEffectType.INVISIBILITY)) {
                     victim.removePotionEffect(effect.getType());
                 }
-            }
-
-            if (homeTimer.containsKey(victim.getName())) {
-                homeTimer.remove(victim.getName());
-                homeLocation.remove(victim.getName());
-            }
-            if (homeTimer.containsKey(attacker.getName())) {
-                homeTimer.remove(attacker.getName());
-                homeLocation.remove(attacker.getName());
             }
         }
     }
