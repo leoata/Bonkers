@@ -1,0 +1,34 @@
+spawn:
+arena:
+  pos1:
+  pos2:
+  center:
+  kothpos1:
+  kothpos2:
+  capzonepos1:
+  capzonepos2:
+  mineylevel:
+blue:
+  pos1:
+  pos2:
+  respawnpos1:
+  respawnpos2:
+  spawn:
+green:
+  pos1:
+  pos2:
+  respawnpos1:
+  respawnpos2:
+  spawn:
+yellow:
+  pos1:
+  pos2:
+  respawnpos1:
+  respawnpos2:
+  spawn:
+red:
+  pos1:
+  pos2:
+  respawnpos1:
+  respawnpos2:
+  spawn:

@@ -1,0 +1,19 @@
+name: Bunkers
+main: me.soki.bunkers.Main.Main
+author: sokiii
+version: '1.0'
+commands:
+  team:
+    aliases: [t, f, faction]
+  start:
+    aliases: [startgame]
+  arena:
+  setspawn:
+  spec:
+    aliases: [tp]
+  setvillager:
+    aliases: [villager]
+  balance:
+    aliases: [bal, eco, money]
+  pay:
+
